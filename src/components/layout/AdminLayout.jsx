@@ -34,6 +34,8 @@ import {
   Logout as LogoutIcon,
   Menu as MenuIcon,
   AccountCircle,
+  PeopleOutline as UsersIcon,
+  TrendingUp as ReportsIcon
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -48,10 +50,11 @@ const AdminLayout = () => {
 
   const navigationItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: <DashboardIcon /> },
+    { name: 'User Management', path: '/admin/users', icon: <UsersIcon /> },
     { name: 'Seller Approvals', path: '/admin/sellers', icon: <PeopleIcon /> },
     { name: 'Products', path: '/admin/products', icon: <InventoryIcon /> },
-    { name: 'Reports', path: '/admin/reports', icon: <BarChartIcon /> },
-    { name: 'Settings', path: '/admin/settings', icon: <SettingsIcon /> },
+    { name: 'Reports', path: '/admin/reports', icon: <ReportsIcon /> },
+   // { name: 'Settings', path: '/admin/settings', icon: <SettingsIcon /> },
   ];
 
   const handleDrawerToggle = () => {
@@ -219,16 +222,7 @@ const AdminLayout = () => {
             }
           </Typography>
           
-          <Tooltip title="Account settings">
-            <IconButton
-              onClick={handleMenuOpen}
-              size="large"
-              edge="end"
-              color="inherit"
-            >
-              <AccountCircle />
-            </IconButton>
-          </Tooltip>
+          
           
           <Menu
             anchorEl={anchorEl}

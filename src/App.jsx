@@ -1,3 +1,4 @@
+import React from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -8,13 +9,42 @@ import Login from './pages/login';
 import AdminLogin from './pages/login';
 import AdminDashboard from './pages/adminDashboard';
 import SellerApprovals from './pages/SellerApprovals';
-import AdminProductsPage from './pages/AdminProductsPage'; // Import the products page
+import AdminProductsPage from './pages/AdminProductsPage';
+import AdminReportsPage from './pages/reports'; // New reports page
+import AdminUserManagementPage from './pages/userManage'; // New user management page
 import AdminLayout from './components/layout/AdminLayout';
 import { useAuth } from './contexts/AuthContext';
 
-// Theme configuration (already in your code)
+// Theme configuration
 const darkTheme = createTheme({
-  // Your theme configuration...
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#90caf9',
+    },
+    secondary: {
+      main: '#f48fb1',
+    },
+    background: {
+      default: '#121212',
+      paper: '#1e1e1e',
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+  },
+  shape: {
+    borderRadius: 8,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+        },
+      },
+    },
+  },
 });
 
 const App = () => {
@@ -33,7 +63,7 @@ const App = () => {
         
         {/* Regular User Routes */}
         {currentUser && !isAdmin ? (
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<Dashboard />} />
         ) : null}
         
         {/* Admin Routes with Layout */}
@@ -42,9 +72,9 @@ const App = () => {
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="sellers" element={<SellerApprovals />} />
-            
-            {/* Product Management Route (just the list page) */}
             <Route path="products" element={<AdminProductsPage />} />
+            <Route path="reports" element={<AdminReportsPage />} /> {/* New route */}
+            <Route path="users" element={<AdminUserManagementPage />} /> {/* New route */}
           </Route>
         ) : null}
         

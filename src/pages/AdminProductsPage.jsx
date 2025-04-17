@@ -41,6 +41,7 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   FilterList as FilterListIcon,
+  Flag as FlagIcon
 } from '@mui/icons-material';
 
 const AdminProductsPage = () => {
@@ -63,6 +64,9 @@ const AdminProductsPage = () => {
   // For status toggle
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [statusUpdatingId, setStatusUpdatingId] = useState(null);
+  
+  // For error display timeout
+  const [errorTimeout, setErrorTimeout] = useState(null);
 
   useEffect(() => {
     fetchProducts();
@@ -80,6 +84,19 @@ const AdminProductsPage = () => {
     
     return () => clearTimeout(timeoutId);
   }, [searchTerm]);
+  
+  // Clear error messages after timeout
+  const showError = (message) => {
+    // Clear any existing timeout
+    if (errorTimeout) clearTimeout(errorTimeout);
+    
+    // Set the error message
+    setError(message);
+    
+    // Set a timeout to clear the error after 5 seconds
+    const timeout = setTimeout(() => setError(''), 5000);
+    setErrorTimeout(timeout);
+  };
 
   const fetchProducts = async () => {
     try {
@@ -124,12 +141,15 @@ const AdminProductsPage = () => {
       }
     } catch (err) {
       console.error(err);
-      setError('Failed to load products. Please try again.');
+      showError('Failed to load products. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleViewProduct = (product) => {
+    window.open(`/products/${product._id}`, '_blank');
+  };
 
   const handleFlagProduct = async (product) => {
     const reason = prompt(`Flagging "${product.title}". Enter reason (optional):`);
@@ -148,7 +168,6 @@ const AdminProductsPage = () => {
       alert('Failed to flag product. Please try again.');
     }
   };
-  
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -164,9 +183,10 @@ const AdminProductsPage = () => {
       setStatusUpdating(true);
       setStatusUpdatingId(productId);
       
-      await axiosInstance.patch(`/admin/products/${productId}/toggle-status`);
+      // Save original products state
+      const originalProducts = [...products];
       
-      // Update product status in the local state
+      // Optimistically update UI
       setProducts(prevProducts => 
         prevProducts.map(product => 
           product._id === productId 
@@ -175,9 +195,30 @@ const AdminProductsPage = () => {
         )
       );
       
+      // Make API call
+      const response = await axiosInstance.patch(`/admin/products/${productId}/toggle-status`);
+      
+      // Check if request was successful
+      if (!response.data || !response.data.success) {
+        // Revert UI change if server reports failure
+        setProducts(originalProducts);
+        showError(response.data?.message || 'Failed to update product status');
+      }
+      
     } catch (err) {
-      console.error(err);
-      setError('Failed to update product status. Please try again.');
+      console.error('Error toggling product status:', err);
+      
+      // Revert UI change on error
+      setProducts(prevProducts => 
+        prevProducts.map(product => 
+          product._id === productId 
+            ? { ...product, active: currentStatus } // Revert to original
+            : product
+        )
+      );
+      
+      // Set error message
+      showError(err.response?.data?.message || 'Failed to update product status. Please try again.');
     } finally {
       setStatusUpdating(false);
       setStatusUpdatingId(null);
@@ -208,7 +249,7 @@ const AdminProductsPage = () => {
       
     } catch (err) {
       console.error(err);
-      setError('Failed to delete product. Please try again.');
+      showError('Failed to delete product. Please try again.');
     } finally {
       setDeleteLoading(false);
     }
@@ -456,16 +497,29 @@ const AdminProductsPage = () => {
                       </Box>
                     </TableCell>
                     <TableCell align="right">
-                    <Tooltip title="Flag Product">
-  <IconButton 
-    size="small"
-    color="warning"
-    onClick={() => handleFlagProduct(product)}
-  >
-    <VisibilityIcon />
-  </IconButton>
-</Tooltip>
+                      {/* View Product Button */}
+                      <Tooltip title="View Product">
+                        <IconButton 
+                          size="small"
+                          color="primary"
+                          onClick={() => handleViewProduct(product)}
+                        >
+                          <VisibilityIcon />
+                        </IconButton>
+                      </Tooltip>
 
+                      {/* Flag Product Button */}
+                      <Tooltip title="Flag Product">
+                        <IconButton 
+                          size="small"
+                          color="warning"
+                          onClick={() => handleFlagProduct(product)}
+                        >
+                          <FlagIcon />
+                        </IconButton>
+                      </Tooltip>
+
+                      {/* Delete Button */}
                       <Tooltip title="Delete">
                         <IconButton 
                           onClick={() => openDeleteDialog(product)}
