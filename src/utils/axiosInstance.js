@@ -1,7 +1,7 @@
 // File: /src/utils/axiosInstance.js
 import axios from 'axios';
 
-const baseURL =import.meta.env.VITE_BACKEND_BASE_URL_local;
+const baseURL =import.meta.env.VITE_BACKEND_BASE_URL || 'http://localhost:3000/api';
 
 const axiosInstance = axios.create({
   baseURL,
